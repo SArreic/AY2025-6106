@@ -28,6 +28,10 @@ def main():
 def paynow():
     return (render_template("paynow.html"))
 
+@app.route("/deposit", methods=["GET", "POST"])
+def paynow():
+    return (render_template("deposit.html"))
+
 @app.route("/userlog", methods=["GET", "POST"])
 def userlog():
     conn = sqlite3.connect("user.db")
