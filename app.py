@@ -4,23 +4,40 @@ import datetime
 
 app = Flask(__name__)
 
+flag = 1
+
 @app.route("/", methods=["GET", "POST"])
 def index():
+    global flag
+    flag = 1
     return (render_template("index.html"))
 
 @app.route("/main", methods=["GET", "POST"])
 def main():
-    q = request.form.get("q")
-    print(q)
+    global flag
 
-    name = q
-    timestamp = datetime.datetime.now()
-    conn = sqlite3.connect("user.db")
-    c = conn.cursor()
-    c.execute("insert into user (name, timestamp) values (?,?)", (name, timestamp))
-    conn.commit()
-    c.close()
-    conn.close()
+    if flag == 1:
+
+        q = request.form.get("q")
+        print(q)
+
+        name = q
+        timestamp = datetime.datetime.now()
+        conn = sqlite3.connect("user.db")
+        c = conn.cursor()
+        c.execute("""
+        WITH count_check AS (
+            SELECT COUNT(*) as cnt FROM user
+        )
+        DELETE FROM user WHERE (SELECT cnt FROM count_check) > 0;
+        INSERT INTO user (name, timestamp) VALUES (?,?);
+    """, (name, timestamp))
+        conn.commit()
+        c.close()
+        conn.close()
+
+        flag = 0
+    
 
     return (render_template("main.html"))
 
@@ -58,6 +75,10 @@ def delteUserLog():
     conn.close()
 
     return (render_template("delete-userlog.html"))
+
+@app.route("/deposit", methods=["GET", "POST"])
+def deposit():
+    return (render_template("deposit.html"))
 
 if __name__ == "__main__":
     app.run()
